@@ -6,11 +6,18 @@ import About from './components/Router/About.vue'
 
 import { render, fireEvent } from '../../src'
 
+import { setTitle } from '../../setTitle'
+
 const routes = [
-  { path: '/', component: Home },
-  { path: '/about', component: About },
-  { path: '*', redirect: '/about' }
+  // meta 入れる
+  { path: '/', component: Home, meta: { title: 'Home' } },
+  { path: '/about', component: About, meta: { title: 'About' } },
+  { path: '*', redirect: '/' }
 ]
+
+afterEach(() => {
+  document.title = ''
+})
 
 test('full app rendering/navigating', async () => {
   const { queryByTestId } = render(App, { routes })
@@ -28,4 +35,23 @@ test('setting initial route', () => {
   })
 
   expect(queryByTestId('location-display')).toHaveTextContent('/about')
+})
+
+test('route to about', () => {
+  const { queryByTestId, baseElement } = render(App, { routes }, (_, __, router) => {
+    router.afterEach(setTitle)
+    router.push('/about')
+  })
+  const titleDOM = baseElement.parentNode.querySelector('title')
+  expect(titleDOM.innerHTML).toBe('About')
+})
+
+
+test('route to home', () => {
+  const { queryByTestId, baseElement } = render(App, { routes }, (_, __, router) => {
+    router.afterEach(setTitle)
+    router.push('/home')
+  })
+  const titleDOM = baseElement.parentNode.querySelector('title')
+  expect(titleDOM.innerHTML).toBe('Home')
 })
